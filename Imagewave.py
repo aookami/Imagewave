@@ -115,7 +115,7 @@ def blackandwhite(imf, val):
     for x in range(1, width - 1):
         for y in range(1, height - 1):
             r, g, b = imf.getpixel((x, y))
-            if r > val or b > val or g >val:
+            if r > val or b > val or g > val:
                 r = 255
                 b = 255
                 g = 255
@@ -131,28 +131,62 @@ def split(imf, val):
     listsmallimages = []
     size = imf.size
     width, height = size
+    m = 0
+    k = 0
 
-    for x in range (1, val^2):
+    for x in range (1, (val*val)+1):
+        if m == val:
+            m = 0
+            k = k + 1
+        print(x)
         ims = Image.new("RGB", (width/val, height/val), color=0)
-        for i in range ((x-1)*(width/val), x*(width/val)):
-            for j in range((x - 1) * (height / val), x * (height / val)):
-                r, g, b = imf.getpixel(i, j)
-                imf.putpixel((i-(x-1)*(width/val), j-(x-1)*(height/val)), (int(r), int(g), int(b)))
+        for i in range (((m)*(width/val)), ((m+1)*(width/val))):
+            for j in range(((k ) * (height / val)), ((k+1) * (height / val))):
+                r, g, b = imf.getpixel((i, j))
+                ims.putpixel((i-((m)*(width/val)), j-((k)*(height/val))), (int(r), int(g), int(b)))
         listsmallimages.append(ims)
+        m = m + 1
+
+    fcalled = fcalled + "split" + str(val)
+    print("done split")
+    return listsmallimages
+
+
+
+
+
+def restore(listsmallimages, imf, val):
+    global fcalled
+    size = imf.size
+    width, height = size
+    c = 0
+    f = 0
     random.shuffle(listsmallimages)
-
     while listsmallimages:
-        imso = listsmallimages.pop()
+        imso = listsmallimages[0]
+        listsmallimages.pop(0)
+        num = int(360*random.random())
+        imso = imso.rotate(num)
 
-    fcalled = fcalled + "bnwv" + str(val)
-    print("done bnw")
+        print("ROTATE")
+        c = c + 1
+        if (c == val ):
+            c = 0
+            f = f + 1
+        if (f == val ):
+            f = 0
+        for i in range (0, width/val ):
+            for j in range (0, height/val):
+                r,g,b = imso.getpixel((i,j))
+                imf.putpixel(((c*(width/val))+i,((f*height/val))+j), (r, g, b))
+        print(str(c) + " " + str(f))
+    fcalled = fcalled + "restore"
+    print("done restore")
+
+
 
 imo = Image.open("pika.jpg")
 im = imo
 
-blackandwhite(im,200)
-blur(im)
-blur(im)
-blur(im)
-contrast(im, 2)
+restore(split(im, 4),im, 4)
 im.save(strftime("%Y%m%d%H%M%S", gmtime()) + fcalled + "pika.jpeg")
