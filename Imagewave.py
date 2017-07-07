@@ -10,11 +10,12 @@
 
 
 
-from __future__ import print_function
-import os, sys
+
 from PIL import Image
+import numpy
 from numpy import random
 from time import gmtime, strftime
+
 fcalled = "f"
 
 
@@ -83,7 +84,7 @@ def addRGB(imf, value):
 
 
 def biggerelsemid(imf):
-    global fcalled
+    global fcalled, b, g, r, y
 
     size = imf.size
     width, height = size
@@ -105,7 +106,22 @@ def biggerelsemid(imf):
     fcalled = fcalled + "biggerelsemid"
     print("done biggerelsemid")
 
+def camerafilter(imf,delta,mul):
+    global fcalled
+    size = imf.size
+    width, height = size
 
+    for i in range(1, int(height)-1):
+       for j in range(1, int(width)-1):
+            #print( str(i) + " " + str(j) + " " + str(size))
+            r, g, b = imf.getpixel((j, i))
+            r = r + delta * numpy.sin(i*mul)
+            g = g + delta * numpy.sin(i*mul)
+            b = b + delta * numpy.sin(i*mul)
+            imf.putpixel((j, i), (int(r), int(g), int(b)))
+
+    fcalled = fcalled + "camerafilter"
+    print("donecamerafilter")
 def blackandwhite(imf, val):
     global fcalled
 
@@ -126,6 +142,62 @@ def blackandwhite(imf, val):
     fcalled = fcalled + "bnwv" + str(val)
     print("done bnw")
 
+
+def fuzz(imf):
+    global fcalled
+    ima = imf
+    size = imf.size
+    width, height = size
+    widthi = width
+    heighti = height
+    array = numpy.zeros((width, height))
+    for i in range(1, width):
+        for j in range(1, height):
+            x = int(int(widthi) * random.random())
+            y = int(heighti * random.random())
+            while (array[x][y] == 1):
+                x = int(widthi * random.random())
+                y = int(heighti * random.random())
+
+            array[x][y] = 1
+
+            if (x > width):
+                x = width
+            if (y > height):
+                y = height
+            r, g, b = ima.getpixel((i, j))
+            imf.putpixel((x, y), (int(r), int(g), int(b)))
+    fcalled = fcalled + "fuzz"
+
+
+def getmeancolor(imf):
+    global fcalled
+    ima = imf
+    size = imf.size
+    width, height = size
+    rtotal = 0
+    gtotal = 0
+    btotal = 0
+
+    for i in range(0, width):
+        for j in range(0, height):
+            r, g, b = imf.getpixel((i, j))
+            rtotal = rtotal + r
+            gtotal = gtotal + g
+            btotal = btotal + b
+
+    rtotal = rtotal / (width * height)
+    gtotal = gtotal / (width * height)
+    btotal = btotal / (width * height)
+
+    for i in range(1, width):
+        for j in range(1, height):
+            #imf.putpixel((i, j), (255, 255, 255))
+             imf.putpixel((i, j), (rtotal, gtotal, btotal))
+
+    fcalled = fcalled + "mean"
+
+
 def split(imf, val):
     global fcalled
     listsmallimages = []
@@ -134,16 +206,16 @@ def split(imf, val):
     m = 0
     k = 0
 
-    for x in range (1, (val*val)+1):
+    for x in range(0, (val * val)):
         if m == val:
             m = 0
             k = k + 1
-        print(x)
-        ims = Image.new("RGB", (width/val, height/val), color=0)
-        for i in range (((m)*(width/val)), ((m+1)*(width/val))):
-            for j in range(((k ) * (height / val)), ((k+1) * (height / val))):
+
+        ims = Image.new("RGB", (width / val, height / val), color=(255, 255, 255))
+        for i in range(((m) * (width / val)), ((m + 1) * (width / val))):
+            for j in range(((k) * (height / val)), ((k + 1) * (height / val))):
                 r, g, b = imf.getpixel((i, j))
-                ims.putpixel((i-((m)*(width/val)), j-((k)*(height/val))), (int(r), int(g), int(b)))
+                ims.putpixel((i - ((m) * (width / val)), j - ((k) * (height / val))), (int(r), int(g), int(b)))
         listsmallimages.append(ims)
         m = m + 1
 
@@ -152,41 +224,43 @@ def split(imf, val):
     return listsmallimages
 
 
-
-
-
 def restore(listsmallimages, imf, val):
     global fcalled
     size = imf.size
     width, height = size
+
     c = 0
     f = 0
     random.shuffle(listsmallimages)
     while listsmallimages:
         imso = listsmallimages[0]
         listsmallimages.pop(0)
-        num = int(360*random.random())
-        imso = imso.rotate(num)
+        sizeo = imso.size
+        num = int(4 * random.random())
+        num = num * 90
+        # imso = imso.rotate(num, expand=0)
+        #getmeancolor(imso)
 
-        print("ROTATE")
-        c = c + 1
-        if (c == val ):
+        if (c == val):
             c = 0
             f = f + 1
-        if (f == val ):
+        if (f == val):
             f = 0
-        for i in range (0, width/val ):
-            for j in range (0, height/val):
-                r,g,b = imso.getpixel((i,j))
-                imf.putpixel(((c*(width/val))+i,((f*height/val))+j), (r, g, b))
-        print(str(c) + " " + str(f))
+        for i in range(0, (width / val)):
+            for j in range(0, (height / val)):
+                r, g, b = imso.getpixel((i, j))
+                # print(str(i) + " " + str(j) + str(imso.size)+ " " +str((c * (width / val)) + i) + " "+ str(((f * height / val)) + j))
+                imf.putpixel(((c * (width / val)) + i, ((f * height / val)) + j), (r, g, b))
+        c = c + 1
     fcalled = fcalled + "restore"
     print("done restore")
 
 
-
-imo = Image.open("pika.jpg")
+imagename = "Amelie"
+imo = Image.open(imagename + ".jpg")
 im = imo
 
-restore(split(im, 4),im, 4)
-im.save(strftime("%Y%m%d%H%M%S", gmtime()) + fcalled + "pika.jpeg")
+valin =2
+camerafilter(im,255,1)
+
+im.save(strftime("%Y%m%d%H%M%S", gmtime()) + imagename + ".jpeg")
