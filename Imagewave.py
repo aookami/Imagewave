@@ -15,6 +15,8 @@ from PIL import Image
 import numpy
 from numpy import random
 from time import gmtime, strftime
+import operator
+import time
 
 fcalled = "f"
 
@@ -26,9 +28,9 @@ def contrast(imf, offset):
     imc = imf
     size = imo.size
     width, height = size
-    for x in range(1, width - 1):
-        for y in range(1, height - 1):
-            r, g, b = imc.getpixel((x, y))
+    for x in range(1, height - 1):
+        for y in range(1, width- 1):
+            r, g, b = imc.getpixel((y, x))
             if r > 125:
                 r = r * (1 + offset)
             else:
@@ -41,7 +43,7 @@ def contrast(imf, offset):
                 b = b * (1 + offset)
             else:
                 b = b * (1 - offset)
-            imf.putpixel((x, y), (int(r), int(g), int(b)))
+            imf.putpixel((y, x), (int(r), int(g), int(b)))
     print("done contrast")
 
 
@@ -51,8 +53,9 @@ def blur(imf):
     imb = imf
     size = imo.size
     width, height = size
-    for x in range(1, width - 1):
-        for y in range(1, height - 1):
+
+    for y in range(1, height - 1):
+        for x in range(1, width - 1):
             r1, g1, b1 = imb.getpixel((x - 1, y - 1))
             r2, g2, b2 = imb.getpixel((x - 1, y + 1))
             r3, g3, b3 = imb.getpixel((x - 1, y))
@@ -73,8 +76,8 @@ def addRGB(imf, value):
     fcalled = fcalled + "addRGB" + str(value)
     size = imf.size
     width, height = size
-    for x in range(1, width - 1):
-        for y in range(1, height - 1):
+    for y in range(1, height - 1):
+        for x in range(1, width - 1):
             r, g, b = imf.getpixel((x, y))
             r = r + value
             g = g + value
@@ -89,8 +92,9 @@ def biggerelsemid(imf):
     size = imf.size
     width, height = size
 
-    for x in range(1, width - 1):
-        for y in range(1, height - 1):
+    for y in range(1, height - 1):
+        for x in range(1, width - 1):
+
             r, g, b = imf.getpixel((x, y))
 
             if r >= g and r >= b:
@@ -106,30 +110,32 @@ def biggerelsemid(imf):
     fcalled = fcalled + "biggerelsemid"
     print("done biggerelsemid")
 
-def camerafilter(imf,delta,mul):
+
+def camerafilter(imf, delta, mul):
     global fcalled
     size = imf.size
     width, height = size
 
-    for i in range(1, int(height)-1):
-       for j in range(1, int(width)-1):
-            #print( str(i) + " " + str(j) + " " + str(size))
+    for i in range(1, int(height) - 1):
+        for j in range(1, int(width) - 1):
+            # print( str(i) + " " + str(j) + " " + str(size))
             r, g, b = imf.getpixel((j, i))
-            r = r + delta * numpy.sin(i*mul)
-            g = g + delta * numpy.sin(i*mul)
-            b = b + delta * numpy.sin(i*mul)
+            r = r + delta * numpy.sin(i * mul)
+            g = g + delta * numpy.sin(i * mul)
+            b = b + delta * numpy.sin(i * mul)
             imf.putpixel((j, i), (int(r), int(g), int(b)))
 
     fcalled = fcalled + "camerafilter"
     print("donecamerafilter")
+
+
 def blackandwhite(imf, val):
     global fcalled
 
     size = imf.size
     width, height = size
-
-    for x in range(1, width - 1):
-        for y in range(1, height - 1):
+    for y in range(1, height - 1):
+        for x in range(1, width - 1):
             r, g, b = imf.getpixel((x, y))
             if r > val or b > val or g > val:
                 r = 255
@@ -151,8 +157,8 @@ def fuzz(imf):
     widthi = width
     heighti = height
     array = numpy.zeros((width, height))
-    for i in range(1, width):
-        for j in range(1, height):
+    for j in range(1, height):
+        for i in range(1, width):
             x = int(int(widthi) * random.random())
             y = int(heighti * random.random())
             while (array[x][y] == 1):
@@ -178,9 +184,8 @@ def getmeancolor(imf):
     rtotal = 0
     gtotal = 0
     btotal = 0
-
-    for i in range(0, width):
-        for j in range(0, height):
+    for j in range(0, height):
+        for i in range(0, width):
             r, g, b = imf.getpixel((i, j))
             rtotal = rtotal + r
             gtotal = gtotal + g
@@ -190,10 +195,10 @@ def getmeancolor(imf):
     gtotal = gtotal / (width * height)
     btotal = btotal / (width * height)
 
-    for i in range(1, width):
-        for j in range(1, height):
-            #imf.putpixel((i, j), (255, 255, 255))
-             imf.putpixel((i, j), (rtotal, gtotal, btotal))
+    for j in range(1, height):
+        for i in range(1, width):
+            # imf.putpixel((i, j), (255, 255, 255))
+            imf.putpixel((i, j), (rtotal, gtotal, btotal))
 
     fcalled = fcalled + "mean"
 
@@ -212,8 +217,8 @@ def split(imf, val):
             k = k + 1
 
         ims = Image.new("RGB", (width / val, height / val), color=(255, 255, 255))
-        for i in range(((m) * (width / val)), ((m + 1) * (width / val))):
-            for j in range(((k) * (height / val)), ((k + 1) * (height / val))):
+        for j in range(((k) * (height / val)), ((k + 1) * (height / val))):
+            for i in range(((m) * (width / val)), ((m + 1) * (width / val))):
                 r, g, b = imf.getpixel((i, j))
                 ims.putpixel((i - ((m) * (width / val)), j - ((k) * (height / val))), (int(r), int(g), int(b)))
         listsmallimages.append(ims)
@@ -239,15 +244,15 @@ def restore(listsmallimages, imf, val):
         num = int(4 * random.random())
         num = num * 90
         # imso = imso.rotate(num, expand=0)
-        #getmeancolor(imso)
+        # getmeancolor(imso)
 
         if (c == val):
             c = 0
             f = f + 1
         if (f == val):
             f = 0
-        for i in range(0, (width / val)):
-            for j in range(0, (height / val)):
+        for j in range(0, (height / val)):
+            for i in range(0, (width / val)):
                 r, g, b = imso.getpixel((i, j))
                 # print(str(i) + " " + str(j) + str(imso.size)+ " " +str((c * (width / val)) + i) + " "+ str(((f * height / val)) + j))
                 imf.putpixel(((c * (width / val)) + i, ((f * height / val)) + j), (r, g, b))
@@ -256,11 +261,149 @@ def restore(listsmallimages, imf, val):
     print("done restore")
 
 
-imagename = "Amelie"
-imo = Image.open(imagename + ".jpg")
+def displacelayer(imf, angler, angleg, angleb, valr, valg, valb, mul, mulorig):
+    global fcalled
+    size = imf.size
+    width, height = size
+
+
+    # split imf into 3 images with only its rgb values
+    imr = Image.new("RGB", (width,height),color = 0)
+    imb = Image.new("RGB", (width,height),color = 0)
+    img = Image.new("RGB", (width,height),color = 0)
+    for j in range(0, height):
+        for i in range(0, width):
+            r, g, b = imf.getpixel((i, j))
+            r = int(r*  mul)
+            b = int(b * mul)
+            g = int(g * mul)
+            imr.putpixel((i, j),  (r, 0, 0))
+            img.putpixel((i, j), (0, g, 0))
+            imb.putpixel((i, j), (0, 0, b))
+    print("acabou o split")
+
+    # criar with 3 times the original image size (theres no point in printing further away than that
+    canvas = Image.new("RGB", (width * 3, height * 3), color=0)
+
+
+
+
+
+
+    # print the original image in the canvas middle
+    size2 = canvas.size
+    widthc, heightc = size2
+    if mulorig != 0:
+        for j in range(heightc / 3, (2 * heightc) / 3):
+            for i in range(widthc / 3, (2 * widthc) / 3):
+                #print(str(i) + " " + str(j))
+                (r2, g2, b2) = imf.getpixel((i - (widthc / 3), j - (heightc / 3)))
+                r2 = r2 * mulorig
+                g2 = g2 * mulorig
+                b2 = b2 * mulorig
+                #print(str(((r2, g2, b2))))
+                canvas.putpixel((i, j), (r2, g2, b2))
+
+
+    #acertar os x e y de acordo com as  coordenadas polares, os angulos sao em radianos (float) e a distancia em pixel
+
+    x = widthc/3
+    y = heightc/3
+
+    xr = x + numpy.cos(angler)*valr
+    yr = y + numpy.sin(angler)*valr
+
+    xg = x + numpy.cos(angleg) * valg
+    yg = y + numpy.sin(angleg) * valg
+
+    xb = x + numpy.cos(angleb) * valb
+    yb = y + numpy.sin(angleb) * valb
+
+    #somar cada layer separada
+    for j in range(0, height):
+        for i in range(0, width):
+
+            (rr, gr, br) = imr.getpixel((i,j))
+            tur =canvas.getpixel((xr+i, yr+j))
+            saver = tuple(map(operator.add, (rr, gr, br), tur))
+            canvas.putpixel((int(xr+i),int(yr+j)),saver)
+
+            (rb, gb, bb) = imb.getpixel((i, j))
+            tub = canvas.getpixel((xb + i, yb + j))
+            saveb = tuple(map(operator.add, (rb, gb, bb), tub))
+            canvas.putpixel((int(xb + i), int(yb + j)), saveb)
+
+            (rg, gg, bg) = img.getpixel((i, j))
+            tug = canvas.getpixel((xg + i, yg + j))
+            saveg = tuple(map(operator.add, (rg, gg, bg), tug))
+            canvas.putpixel((int(xg + i), int(yg + j)), saveg)
+
+    #copiar o canvas pro original
+    for j in range(0, height):
+        for i in range(0, width):
+            tuple2 = canvas.getpixel((i+widthc/3,j+heightc/3))
+            imf.putpixel((i,j),tuple2)
+
+
+    fcalled = fcalled + "disl"
+    print("done displace")
+
+
+def glitch(imf, pct, val):
+    global fcalled
+    size = imf.size
+    width, height = size
+
+    # criar with 3 times the original image size (theres no point in printing further away than that
+    canvas = Image.new("RGB", (width * 3, height * 3), color=0)
+
+    # print the original image in the canvas middle
+    size2 = canvas.size
+    widthc, heightc = size2
+    #if mulorig != 0:
+     #   for i in range(widthc / 3, (2 * widthc) / 3):
+      #      for j in range(heightc / 3, (2 * heightc) / 3):
+       #         # print(str(i) + " " + str(j))
+        #        (r2, g2, b2) = imf.getpixel((i - (widthc / 3), j - (heightc / 3)))
+         #       # print(str(((r2, g2, b2))))
+          #      canvas.putpixel((i, j), (r2, g2, b2))
+
+    #use the pct as % chance of dislodging a  line by the val value
+    randomvalue = random.random()*100
+    randompct = random.random()*pct
+    for i in range(heightc / 3, (2 * heightc) / 3):
+        randomvalue = random.random() * 100
+        randompct = random.random() * pct
+        if randomvalue > randompct:
+            for j in range(widthc / 3, (2 *widthc) / 3):
+                tupleimf = imf.getpixel((j-(widthc/3),i-(heightc/3)))
+                canvas.putpixel((j,i), tupleimf)
+        else:
+            for j in range(widthc / 3, (2 * widthc) / 3):
+                tupleimf = imf.getpixel((j - (widthc / 3), i - (heightc / 3)))
+                canvas.putpixel((int((j+(val*numpy.sin(i)))), i), tupleimf)
+    #done glitch
+    #now just copy canvas to the original image
+
+    for i in range(0, width):
+        for j in range(0, height):
+            tuple2 = canvas.getpixel((i+widthc/3,j+heightc/3))
+            imf.putpixel((i,j),tuple2)
+
+    fcalled = fcalled + "glitch" + str(pct)
+    print("done glitch")
+
+t0 = time.time()
+imagename = "vroom.jpg"
+imo = Image.open(imagename)
 im = imo
 
-valin =2
-camerafilter(im,255,1)
+valin = 2
+restore(split(im,2),im,2)
+displacelayer(im, 0, 0, 0, -60, 0, 60, 1, 0)
+camerafilter(im, 10, 3)
+glitch(im,50,100)
+t1 = time.time()
 
+print(str(t1-t0))
 im.save(strftime("%Y%m%d%H%M%S", gmtime()) + imagename + ".jpeg")
